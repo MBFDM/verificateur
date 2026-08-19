@@ -882,7 +882,7 @@ def main():
     st.markdown("""
     <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 1rem 0; animation: fadeIn 1s ease-out;">
         <span style="display: inline-block; animation: float 4s ease-in-out infinite;">©</span>
-        2026 Eco Capital - Vérificateur d'AVI v2.0
+        2026 Eco Capital - Vérificateur d'AVI
     </div>
     """, unsafe_allow_html=True)
 
