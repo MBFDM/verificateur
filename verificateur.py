@@ -305,6 +305,21 @@ def format_montant(montant, devise="XAF"):
     except:
         return f"{montant} {devise}"
 
+def format_date(date_value):
+    """Formate une date pour l'affichage"""
+    if not date_value:
+        return "Non définie"
+    if isinstance(date_value, datetime):
+        return date_value.strftime('%d/%m/%Y')
+    if isinstance(date_value, str):
+        try:
+            # Essayer de parser la date
+            date_obj = datetime.strptime(date_value, '%Y-%m-%d')
+            return date_obj.strftime('%d/%m/%Y')
+        except ValueError:
+            return date_value
+    return str(date_value)
+
 def display_avi_result(result):
     """Affiche les résultats de la vérification"""
     if not result:
@@ -371,15 +386,21 @@ def display_avi_result(result):
     col1, col2, col3 = st.columns(3)
     
     with col1:
+        # Formater la date de création
+        date_creation = result.get('date_creation')
+        date_creation_display = format_date(date_creation)
         st.metric(
             "📅 Date de création",
-            result.get('date_creation', 'N/A')
+            date_creation_display
         )
     
     with col2:
+        # Formater la date d'expiration
+        date_expiration = result.get('date_expiration')
+        date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
         st.metric(
             "📅 Date d'expiration",
-            result.get('date_expiration', 'N/A') or 'Non définie'
+            date_expiration_display
         )
     
     with col3:
