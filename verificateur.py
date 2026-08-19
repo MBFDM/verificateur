@@ -14,7 +14,7 @@ import time
 # Configuration de la page
 st.set_page_config(
     page_title="Vérificateur AVI - Eco Capital",
-    page_icon="logo.jpg",
+    page_icon="logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
