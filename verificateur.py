@@ -92,7 +92,7 @@ st.markdown("""
     
     .info-value {
         font-weight: 500;
-        color: var(--text-primary);
+        color: var(--text-secondary);
     }
     
     .status-valid {
