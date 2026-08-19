@@ -1,5 +1,5 @@
 """
-Application de Vérification d'AVI
+Application de Vérification d'AVI - Version Premium
 Permet de vérifier les informations d'une AVI en entrant sa référence
 """
 
@@ -14,7 +14,7 @@ import time
 # Configuration de la page
 st.set_page_config(
     page_title="Vérificateur AVI - Eco Capital",
-    page_icon="logo.png",
+    page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -32,100 +32,299 @@ MYSQL_CONFIG = {
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Styles CSS personnalisés - Support des thèmes clair et sombre
+# Styles CSS personnalisés - Design Premium avec animations
 st.markdown("""
 <style>
-    /* ===== STYLES COMMUNS ===== */
-    .main-container {
-        padding: 2rem;
-        border-radius: 15px;
-        text-align: center;
-        margin-bottom: 2rem;
-        animation: fadeIn 0.8s ease-out;
-        border: 1px solid var(--border-color);
-    }
-    
-    .main-container h1 {
-        margin: 0;
-        font-size: 2.5rem;
-    }
-    
-    .main-container p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.9;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-20px); }
+    /* ===== ANIMATIONS GLOBALES ===== */
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-30px); }
         to { opacity: 1; transform: translateY(0); }
     }
     
-    @keyframes slideUp {
+    @keyframes fadeInUp {
         from { opacity: 0; transform: translateY(30px); }
         to { opacity: 1; transform: translateY(0); }
     }
     
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes borderGlow {
+        0%, 100% { border-color: var(--primary-color); }
+        50% { border-color: var(--secondary-color); }
+    }
+
+    /* ===== STYLES COMMUNS ===== */
+    .main-container {
+        padding: 2.5rem;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 2rem;
+        animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 2px solid transparent;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+    
+    .main-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+        pointer-events: none;
+    }
+    
+    .main-container::after {
+        content: '';
+        position: absolute;
+        top: -100%;
+        left: -100%;
+        width: 300%;
+        height: 300%;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+        animation: shimmer 6s ease-in-out infinite;
+        pointer-events: none;
+    }
+    
+    .main-container h1 {
+        margin: 0;
+        font-size: 2.8rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        letter-spacing: 1px;
+    }
+    
+    .main-container p {
+        margin: 0.8rem 0 0 0;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+        font-size: 1.1rem;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+    }
+    
+    .main-container .emoji-icon {
+        display: inline-block;
+        animation: float 3s ease-in-out infinite;
+        margin-right: 10px;
+    }
+    
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-30px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(40px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
     .result-card {
-        padding: 1.5rem;
-        border-radius: 10px;
+        padding: 2rem;
+        border-radius: 16px;
         margin-top: 1.5rem;
-        animation: slideUp 0.6s ease-out;
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         border: 1px solid var(--border-color);
         background: var(--background-secondary);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .result-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    
+    .result-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end), var(--gradient-start));
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
     }
     
     .info-item {
         display: flex;
         justify-content: space-between;
-        padding: 0.75rem 0;
+        padding: 0.85rem 0;
         border-bottom: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        animation: fadeIn 0.5s ease-out;
+        animation-fill-mode: both;
     }
+    
+    .info-item:nth-child(1) { animation-delay: 0.1s; }
+    .info-item:nth-child(2) { animation-delay: 0.2s; }
+    .info-item:nth-child(3) { animation-delay: 0.3s; }
+    .info-item:nth-child(4) { animation-delay: 0.4s; }
+    .info-item:nth-child(5) { animation-delay: 0.5s; }
+    .info-item:nth-child(6) { animation-delay: 0.6s; }
     
     .info-item:last-child {
         border-bottom: none;
     }
     
+    .info-item:hover {
+        background: rgba(102, 126, 234, 0.05);
+        padding-left: 10px;
+        border-radius: 8px;
+    }
+    
     .info-label {
         font-weight: 600;
         color: var(--text-secondary);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-label .label-icon {
+        font-size: 1.1rem;
     }
     
     .info-value {
         font-weight: 500;
-        color: var(--text-secondary);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .info-value:hover {
+        color: var(--gradient-start);
     }
     
     .status-valid {
-        background: #28a745;
+        background: linear-gradient(135deg, #28a745, #20c997);
         color: white;
-        padding: 0.25rem 1rem;
-        border-radius: 20px;
+        padding: 0.3rem 1.2rem;
+        border-radius: 25px;
         font-weight: 600;
         display: inline-block;
+        animation: pulse 2s ease-in-out infinite;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
     }
     
     .status-invalid {
-        background: #dc3545;
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
         color: white;
-        padding: 0.25rem 1rem;
-        border-radius: 20px;
+        padding: 0.3rem 1.2rem;
+        border-radius: 25px;
         font-weight: 600;
         display: inline-block;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
     }
     
     .verification-badge {
-        background: #ffc107;
+        background: linear-gradient(135deg, #ffc107, #ff9800);
         color: #333;
-        padding: 0.5rem 1.5rem;
-        border-radius: 30px;
+        padding: 0.6rem 2rem;
+        border-radius: 35px;
         font-weight: 700;
         display: inline-block;
-        font-size: 0.9rem;
+        font-size: 1rem;
+        animation: pulse 2s ease-in-out infinite;
+        box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+        letter-spacing: 1px;
     }
 
     .stTextInput > div > div > input {
         font-size: 1.1rem;
-        padding: 0.75rem 1rem;
+        padding: 0.85rem 1.2rem;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: 2px solid var(--border-color);
+        background: var(--background-primary);
+        color: var(--text-primary);
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: var(--gradient-start);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        transform: scale(1.01);
+    }
+
+    /* ===== BOUTON AVEC ANIMATION ===== */
+    .stButton > button {
+        border-radius: 12px !important;
+        padding: 0.7rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        border: none !important;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end)) !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .stButton > button::before {
+        content: '' !important;
+        position: absolute !important;
+        top: -50% !important;
+        left: -50% !important;
+        width: 200% !important;
+        height: 200% !important;
+        background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%) !important;
+        animation: shimmer 3s ease-in-out infinite !important;
+        pointer-events: none !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-3px) scale(1.02) !important;
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4) !important;
+    }
+    
+    .stButton > button:active {
+        transform: scale(0.98) !important;
     }
 
     /* ===== THÈME CLAIR ===== */
@@ -137,6 +336,8 @@ st.markdown("""
         --border-color: #e0e0e0;
         --gradient-start: #667eea;
         --gradient-end: #764ba2;
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
     }
     
     [data-theme="light"] .main-container {
@@ -146,7 +347,7 @@ st.markdown("""
     
     [data-theme="light"] .result-card {
         background: white;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
     }
     
     [data-theme="light"] .info-item {
@@ -158,7 +359,7 @@ st.markdown("""
     }
     
     [data-theme="light"] .info-value {
-        color: #a0a0a0;
+        color: #333;
     }
 
     /* ===== THÈME SOMBRE ===== */
@@ -171,17 +372,20 @@ st.markdown("""
             --border-color: #2d303a;
             --gradient-start: #4a6fa5;
             --gradient-end: #6c5b7b;
+            --primary-color: #4a6fa5;
+            --secondary-color: #6c5b7b;
         }
         
         [data-theme="dark"] .main-container {
             background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
             color: #f0f0f0;
             border-color: #3d3d55;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
         }
         
         [data-theme="dark"] .result-card {
             background: #1e2130;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
             border-color: #3d3d55;
         }
         
@@ -198,16 +402,16 @@ st.markdown("""
         }
         
         [data-theme="dark"] .verification-badge {
-            background: #ffc107;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
             color: #1a1a2e;
         }
         
         [data-theme="dark"] .status-valid {
-            background: #2d8f47;
+            background: linear-gradient(135deg, #2d8f47, #1a9c6f);
         }
         
         [data-theme="dark"] .status-invalid {
-            background: #b33c4a;
+            background: linear-gradient(135deg, #b33c4a, #c0392b);
         }
     }
 
@@ -220,6 +424,8 @@ st.markdown("""
         --border-color: #e0e0e0;
         --gradient-start: #667eea;
         --gradient-end: #764ba2;
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
     }
     
     @media (prefers-color-scheme: dark) {
@@ -231,18 +437,60 @@ st.markdown("""
             --border-color: #2d303a;
             --gradient-start: #4a6fa5;
             --gradient-end: #6c5b7b;
+            --primary-color: #4a6fa5;
+            --secondary-color: #6c5b7b;
+        }
+    }
+    
+    /* ===== SECTION DE RECHERCHE ===== */
+    .search-section {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    /* ===== BADGE DE STATUT ===== */
+    .status-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin: 1rem 0;
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .main-container {
+            padding: 1.5rem;
+        }
+        
+        .main-container h1 {
+            font-size: 1.8rem;
+        }
+        
+        .result-card {
+            padding: 1rem;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            gap: 5px;
+            padding: 0.6rem 0;
         }
     }
 </style>
 """, unsafe_allow_html=True)
 
-# JavaScript pour détecter le thème
+# JavaScript pour détecter le thème avec animation de transition
 st.markdown("""
 <script>
     // Détection du thème
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const theme = prefersDark ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
+    
+    // Transition douce pour le changement de thème
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.style.transition = 'background-color 0.5s ease, color 0.5s ease';
+    });
 </script>
 """, unsafe_allow_html=True)
 
@@ -408,7 +656,6 @@ def format_iban(iban):
     """Formate un IBAN pour l'affichage (espaces tous les 4 caractères)"""
     if not iban:
         return iban
-    # Supprimer les espaces existants avant de reformater
     iban_clean = iban.replace(' ', '')
     return ' '.join([iban_clean[i:i+4] for i in range(0, len(iban_clean), 4)])
 
@@ -429,7 +676,6 @@ def format_date(date_value):
         return date_value.strftime('%d/%m/%Y')
     if isinstance(date_value, str):
         try:
-            # Essayer de parser la date
             date_obj = datetime.strptime(date_value, '%Y-%m-%d')
             return date_obj.strftime('%d/%m/%Y')
         except ValueError:
@@ -437,13 +683,13 @@ def format_date(date_value):
     return str(date_value)
 
 def display_avi_result(result):
-    """Affiche les résultats de la vérification"""
+    """Affiche les résultats de la vérification avec animations"""
     if not result:
         return
     
     # Badge de vérification
     st.markdown("""
-    <div style="text-align: center; margin: 1rem 0;">
+    <div style="text-align: center; margin: 1.5rem 0;">
         <span class="verification-badge">✅ AVI VALIDE</span>
     </div>
     """, unsafe_allow_html=True)
@@ -451,7 +697,13 @@ def display_avi_result(result):
     # Carte des résultats
     st.markdown('<div class="result-card">', unsafe_allow_html=True)
     
-    st.markdown("### 📄 Informations de l'AVI")
+    # Titre avec icône animée
+    st.markdown("""
+    <h3 style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem;">
+        <span style="display: inline-block; animation: float 3s ease-in-out infinite;">📄</span>
+        Informations de l'AVI
+    </h3>
+    """, unsafe_allow_html=True)
     
     # Informations principales
     col1, col2 = st.columns(2)
@@ -459,19 +711,19 @@ def display_avi_result(result):
     with col1:
         st.markdown(f"""
         <div class="info-item">
-            <span class="info-label">Référence</span>
+            <span class="info-label"><span class="label-icon">📌</span> Référence</span>
             <span class="info-value">{result.get('reference', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">Nom complet</span>
+            <span class="info-label"><span class="label-icon">👤</span> Nom complet</span>
             <span class="info-value">{result.get('nom_complet', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">Code Banque</span>
+            <span class="info-label"><span class="label-icon">🏦</span> Code Banque</span>
             <span class="info-value">{result.get('code_banque', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">Numéro de Compte</span>
+            <span class="info-label"><span class="label-icon">🔢</span> Numéro de Compte</span>
             <span class="info-value">{result.get('numero_compte', 'N/A')}</span>
         </div>
         """, unsafe_allow_html=True)
@@ -479,19 +731,19 @@ def display_avi_result(result):
     with col2:
         st.markdown(f"""
         <div class="info-item">
-            <span class="info-label">Devise</span>
+            <span class="info-label"><span class="label-icon">💱</span> Devise</span>
             <span class="info-value">{result.get('devise', 'XAF')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">IBAN</span>
+            <span class="info-label"><span class="label-icon">🔑</span> IBAN</span>
             <span class="info-value" style="font-family: monospace;">{format_iban(result.get('iban', 'N/A'))}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">BIC</span>
+            <span class="info-label"><span class="label-icon">🌐</span> BIC</span>
             <span class="info-value" style="font-family: monospace;">{result.get('bic', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">Montant</span>
+            <span class="info-label"><span class="label-icon">💰</span> Montant</span>
             <span class="info-value" style="font-weight: 700; color: #28a745;">{format_montant(result.get('montant'), result.get('devise', 'XAF'))}</span>
         </div>
         """, unsafe_allow_html=True)
@@ -499,49 +751,52 @@ def display_avi_result(result):
     st.markdown("---")
     
     # Informations supplémentaires
-    #col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
     
-    #with col1:
-    #    date_creation = result.get('date_creation')
-    #    date_creation_display = format_date(date_creation)
-    #    st.metric(
-    #        "📅 Date de création",
-    #        date_creation_display
-    #    )
+    with col1:
+        date_creation = result.get('date_creation')
+        date_creation_display = format_date(date_creation)
+        st.metric(
+            "📅 Date de création",
+            date_creation_display
+        )
     
-    #with col2:
-    #    date_expiration = result.get('date_expiration')
-    #    date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
-    #    st.metric(
-    #        "📅 Date d'expiration",
-    #        date_expiration_display
-    #    )
+    with col2:
+        date_expiration = result.get('date_expiration')
+        date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
+        st.metric(
+            "📅 Date d'expiration",
+            date_expiration_display
+        )
     
-    #with col3:
-    #    statut = result.get('statut', 'N/A')
-    #    statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
-    #    st.markdown(f"""
-    #    <div style="text-align: center;">
-    #        <span style="font-size: 0.9rem; color: var(--text-secondary);">📋 Statut</span>
-    #        <br>
-    #        <span class="{statut_class}">{statut}</span>
-    #    </div>
-    #    """, unsafe_allow_html=True)
+    with col3:
+        statut = result.get('statut', 'N/A')
+        statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
+        st.markdown(f"""
+        <div style="text-align: center;">
+            <span style="font-size: 0.9rem; color: var(--text-secondary);">📋 Statut</span>
+            <br>
+            <span class="{statut_class}">{statut}</span>
+        </div>
+        """, unsafe_allow_html=True)
     
-    #st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Commentaires si présents
     if result.get('commentaires'):
         st.markdown(f"""
-        <div style="background: var(--background-secondary); padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border-color);">
-            <strong>Commentaires:</strong>
-            <p style="margin: 0.5rem 0 0 0;">{result.get('commentaires')}</p>
+        <div style="background: var(--background-secondary); padding: 1.2rem; border-radius: 12px; margin-top: 1rem; border: 1px solid var(--border-color); animation: fadeInUp 0.6s ease-out;">
+            <strong style="display: flex; align-items: center; gap: 8px;">
+                <span>📝</span> Commentaires
+            </strong>
+            <p style="margin: 0.5rem 0 0 0; color: var(--text-primary);">{result.get('commentaires')}</p>
         </div>
         """, unsafe_allow_html=True)
     
-    # Pied de page du résultat
+    # Pied de page du résultat avec icône animée
     st.markdown(f"""
-    <div style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem;">
+    <div style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; animation: fadeIn 1s ease-out;">
+        <span style="display: inline-block; animation: float 3s ease-in-out infinite;">🔒</span>
         Vérifié le {datetime.now().strftime('%d/%m/%Y à %H:%M')} · Document certifié par Eco Capital
     </div>
     """, unsafe_allow_html=True)
@@ -549,22 +804,26 @@ def display_avi_result(result):
 def main():
     """Point d'entrée principal"""
     
-    # Initialisation de la base de données
-    with st.spinner("Vérification de la base de données..."):
+    # Initialisation de la base de données avec animation
+    with st.spinner("🔄 Vérification de la base de données..."):
         init_success = init_database()
         if not init_success:
             st.warning("⚠️ Problème avec la base de données. Certaines fonctionnalités peuvent être limitées.")
     
-    # En-tête
+    # En-tête avec animation
     st.markdown("""
     <div class="main-container">
-        <h1>Vérificateur d'AVI</h1>
-        <p>Entrez la référence de l'AVI pour vérifier son authenticité</p>
+        <h1>
+            <span class="emoji-icon">🔍</span>
+            Vérificateur d'AVI
+        </h1>
+        <p>Entrez la référence de l'AVI pour vérifier son authenticité en temps réel</p>
     </div>
     """, unsafe_allow_html=True)
     
     # Section de recherche
-    st.markdown("### Recherche par référence")
+    st.markdown('<div class="search-section">', unsafe_allow_html=True)
+    st.markdown("### 📝 Recherche par référence")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     
@@ -575,12 +834,14 @@ def main():
             label_visibility="collapsed"
         )
         
-        # Bouton de vérification
-        if st.button("Vérifier", type="primary", use_container_width=True):
+        # Bouton de vérification avec animation
+        if st.button("🔍 Vérifier", type="primary", use_container_width=True):
             if not reference or not reference.strip():
                 st.warning("⚠️ Veuillez entrer une référence d'AVI")
             else:
-                with st.spinner("Vérification en cours..."):
+                with st.spinner("🔎 Vérification en cours..."):
+                    # Simuler un temps de chargement pour l'effet
+                    time.sleep(0.5)
                     result = verify_avi(reference)
                     
                     if result:
@@ -589,43 +850,71 @@ def main():
                     else:
                         st.markdown("---")
                         st.markdown("""
-                        <div style="text-align: center; padding: 2rem; background: #fff3cd; border-radius: 10px; border: 1px solid #ffc107;">
-                            <h3 style="color: #856404;">❌ AVI non trouvée</h3>
-                            <p style="color: #856404;">Aucune attestation trouvée avec la référence <strong>{}</strong></p>
-                            <p style="color: #856404; font-size: 0.9rem;">Vérifiez que la référence est correcte (format: AVI-YYYYMMDD-XXXX)</p>
+                        <div style="text-align: center; padding: 2.5rem; background: #fff3cd; border-radius: 12px; border: 2px solid #ffc107; animation: fadeInUp 0.6s ease-out;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">❌</div>
+                            <h3 style="color: #856404;">AVI non trouvée</h3>
+                            <p style="color: #856404; font-size: 1.1rem;">
+                                Aucune attestation trouvée avec la référence <strong>{}</strong>
+                            </p>
+                            <p style="color: #856404; font-size: 0.95rem; margin-top: 0.5rem;">
+                                Vérifiez que la référence est correcte (format: AVI-YYYYMMDD-XXXX)
+                            </p>
                         </div>
                         """.format(reference.strip()), unsafe_allow_html=True)
     
-    # Section d'information
-    with st.expander("Comment utiliser le vérificateur", expanded=False):
-        st.markdown("""
-        **Instructions :**
-        
-        1. Entrez la **référence complète** de l'AVI dans le champ de recherche
-        2. Cliquez sur le bouton **"Vérifier"**
-        3. Les informations de l'AVI s'afficheront si elles existent dans la base de données
-        
-        **Format de référence attendu :** `AVI-YYYYMMDD-XXXX`
-        - YYYYMMDD : Date de création (Année/Mois/Jour)
-        - XXXX : Numéro aléatoire à 4 chiffres
-        
-        **Exemple :** `AVI-20260119-1234`
-        """)
+    st.markdown('</div>', unsafe_allow_html=True)
     
-    # Section des dernières vérifications
-    with st.expander("Statistiques", expanded=False):
+    # Section d'information
+    with st.expander("ℹ️ Comment utiliser le vérificateur", expanded=False):
         st.markdown("""
         <div style="padding: 0.5rem 0;">
-            <p style="color: var(--text-secondary);">Cette page est un outil sécurisé de vérification des AVI.</p>
-            <p style="color: var(--text-secondary);">Toutes les vérifications sont enregistrées pour des raisons de sécurité.</p>
+            <p style="font-size: 1.05rem; margin-bottom: 1rem;">📋 <strong>Instructions :</strong></p>
+            <ol style="font-size: 1rem; line-height: 2;">
+                <li>Entrez la <strong>référence complète</strong> de l'AVI dans le champ de recherche</li>
+                <li>Cliquez sur le bouton <strong>"Vérifier"</strong></li>
+                <li>Les informations de l'AVI s'afficheront si elles existent dans la base de données</li>
+            </ol>
+            <div style="background: var(--background-secondary); padding: 1rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--gradient-start);">
+                <p style="margin: 0;"><strong>Format de référence attendu :</strong> <code style="background: var(--border-color); padding: 0.2rem 0.5rem; border-radius: 4px;">AVI-YYYYMMDD-XXXX</code></p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">
+                    • YYYYMMDD : Date de création (Année/Mois/Jour)<br>
+                    • XXXX : Numéro aléatoire à 4 chiffres
+                </p>
+                <p style="margin: 0.5rem 0 0 0; font-weight: 500;">Exemple : <code style="background: var(--border-color); padding: 0.2rem 0.5rem; border-radius: 4px;">AVI-20260119-1234</code></p>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
-    # Footer
+    # Section des statistiques
+    with st.expander("📊 Statistiques", expanded=False):
+        st.markdown("""
+        <div style="padding: 0.5rem 0;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div style="background: var(--background-secondary); padding: 1rem; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+                    <div style="font-size: 2rem;">🔒</div>
+                    <p style="margin: 0.5rem 0 0 0; font-weight: 600;">Sécurisé</p>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Vérification certifiée</p>
+                </div>
+                <div style="background: var(--background-secondary); padding: 1rem; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+                    <div style="font-size: 2rem;">✅</div>
+                    <p style="margin: 0.5rem 0 0 0; font-weight: 600;">Authentique</p>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Documents validés</p>
+                </div>
+                <div style="background: var(--background-secondary); padding: 1rem; border-radius: 10px; text-align: center; border: 1px solid var(--border-color);">
+                    <div style="font-size: 2rem;">🕒</div>
+                    <p style="margin: 0.5rem 0 0 0; font-weight: 600;">Temps réel</p>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Vérification instantanée</p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Footer avec animation
     st.markdown("---")
     st.markdown("""
-    <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 1rem 0;">
-        © 2026 Eco Capital - Vérificateur d'AVI v1.0
+    <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 1rem 0; animation: fadeIn 1s ease-out;">
+        <span style="display: inline-block; animation: float 4s ease-in-out infinite;">©</span>
+        2026 Eco Capital - Vérificateur d'AVI v2.0
     </div>
     """, unsafe_allow_html=True)
 
