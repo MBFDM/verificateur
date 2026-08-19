@@ -32,17 +32,17 @@ MYSQL_CONFIG = {
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Styles CSS personnalisés
+# Styles CSS personnalisés - Support des thèmes clair et sombre
 st.markdown("""
 <style>
+    /* ===== STYLES COMMUNS ===== */
     .main-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 2rem;
         border-radius: 15px;
-        color: white;
         text-align: center;
         margin-bottom: 2rem;
         animation: fadeIn 0.8s ease-out;
+        border: 1px solid var(--border-color);
     }
     
     .main-container h1 {
@@ -60,25 +60,25 @@ st.markdown("""
         to { opacity: 1; transform: translateY(0); }
     }
     
-    .result-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        margin-top: 1.5rem;
-        animation: slideUp 0.6s ease-out;
-    }
-    
     @keyframes slideUp {
         from { opacity: 0; transform: translateY(30px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .result-card {
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-top: 1.5rem;
+        animation: slideUp 0.6s ease-out;
+        border: 1px solid var(--border-color);
+        background: var(--background-secondary);
     }
     
     .info-item {
         display: flex;
         justify-content: space-between;
         padding: 0.75rem 0;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color);
     }
     
     .info-item:last-child {
@@ -87,12 +87,12 @@ st.markdown("""
     
     .info-label {
         font-weight: 600;
-        color: #FFFFFF;
+        color: var(--text-secondary);
     }
     
     .info-value {
-        color: #FFFFFF;
         font-weight: 500;
+        color: var(--text-primary);
     }
     
     .status-valid {
@@ -127,7 +127,123 @@ st.markdown("""
         font-size: 1.1rem;
         padding: 0.75rem 1rem;
     }
+
+    /* ===== THÈME CLAIR ===== */
+    [data-theme="light"] {
+        --background-primary: #ffffff;
+        --background-secondary: #f8f9fa;
+        --text-primary: #262730;
+        --text-secondary: #555555;
+        --border-color: #e0e0e0;
+        --gradient-start: #667eea;
+        --gradient-end: #764ba2;
+    }
+    
+    [data-theme="light"] .main-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    [data-theme="light"] .result-card {
+        background: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    [data-theme="light"] .info-item {
+        border-bottom-color: #eee;
+    }
+    
+    [data-theme="light"] .info-label {
+        color: #555;
+    }
+    
+    [data-theme="light"] .info-value {
+        color: #333;
+    }
+
+    /* ===== THÈME SOMBRE ===== */
+    @media (prefers-color-scheme: dark) {
+        [data-theme="dark"] {
+            --background-primary: #0e1117;
+            --background-secondary: #1e2130;
+            --text-primary: #fafafa;
+            --text-secondary: #a0a0a0;
+            --border-color: #2d303a;
+            --gradient-start: #4a6fa5;
+            --gradient-end: #6c5b7b;
+        }
+        
+        [data-theme="dark"] .main-container {
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            color: #f0f0f0;
+            border-color: #3d3d55;
+        }
+        
+        [data-theme="dark"] .result-card {
+            background: #1e2130;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border-color: #3d3d55;
+        }
+        
+        [data-theme="dark"] .info-item {
+            border-bottom-color: #3d3d55;
+        }
+        
+        [data-theme="dark"] .info-label {
+            color: #a0a0a0;
+        }
+        
+        [data-theme="dark"] .info-value {
+            color: #f0f0f0;
+        }
+        
+        [data-theme="dark"] .verification-badge {
+            background: #ffc107;
+            color: #1a1a2e;
+        }
+        
+        [data-theme="dark"] .status-valid {
+            background: #2d8f47;
+        }
+        
+        [data-theme="dark"] .status-invalid {
+            background: #b33c4a;
+        }
+    }
+
+    /* ===== VARIABLES CSS DYNAMIQUES ===== */
+    :root {
+        --background-primary: #ffffff;
+        --background-secondary: #f8f9fa;
+        --text-primary: #262730;
+        --text-secondary: #555555;
+        --border-color: #e0e0e0;
+        --gradient-start: #667eea;
+        --gradient-end: #764ba2;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --background-primary: #0e1117;
+            --background-secondary: #1e2130;
+            --text-primary: #fafafa;
+            --text-secondary: #a0a0a0;
+            --border-color: #2d303a;
+            --gradient-start: #4a6fa5;
+            --gradient-end: #6c5b7b;
+        }
+    }
 </style>
+""", unsafe_allow_html=True)
+
+# JavaScript pour détecter le thème
+st.markdown("""
+<script>
+    // Détection du thème
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = prefersDark ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+</script>
 """, unsafe_allow_html=True)
 
 def get_db_connection():
@@ -386,7 +502,6 @@ def display_avi_result(result):
     #col1, col2, col3 = st.columns(3)
     
     #with col1:
-        # Formater la date de création
     #    date_creation = result.get('date_creation')
     #    date_creation_display = format_date(date_creation)
     #    st.metric(
@@ -395,12 +510,11 @@ def display_avi_result(result):
     #    )
     
     #with col2:
-        # Formater la date d'expiration
     #    date_expiration = result.get('date_expiration')
     #    date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
     #    st.metric(
     #        "📅 Date d'expiration",
-    #          date_expiration_display
+    #        date_expiration_display
     #    )
     
     #with col3:
@@ -408,7 +522,7 @@ def display_avi_result(result):
     #    statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
     #    st.markdown(f"""
     #    <div style="text-align: center;">
-    #        <span style="font-size: 0.9rem; color: #666;">📋 Statut</span>
+    #        <span style="font-size: 0.9rem; color: var(--text-secondary);">📋 Statut</span>
     #        <br>
     #        <span class="{statut_class}">{statut}</span>
     #    </div>
@@ -419,15 +533,15 @@ def display_avi_result(result):
     # Commentaires si présents
     if result.get('commentaires'):
         st.markdown(f"""
-        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-            <strong>📝 Commentaires:</strong>
+        <div style="background: var(--background-secondary); padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border-color);">
+            <strong>Commentaires:</strong>
             <p style="margin: 0.5rem 0 0 0;">{result.get('commentaires')}</p>
         </div>
         """, unsafe_allow_html=True)
     
     # Pied de page du résultat
     st.markdown(f"""
-    <div style="text-align: center; margin-top: 1.5rem; color: #888; font-size: 0.85rem;">
+    <div style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem;">
         Vérifié le {datetime.now().strftime('%d/%m/%Y à %H:%M')} · Document certifié par Eco Capital
     </div>
     """, unsafe_allow_html=True)
@@ -436,7 +550,7 @@ def main():
     """Point d'entrée principal"""
     
     # Initialisation de la base de données
-    with st.spinner("🔄 Vérification de la base de données..."):
+    with st.spinner("Vérification de la base de données..."):
         init_success = init_database()
         if not init_success:
             st.warning("⚠️ Problème avec la base de données. Certaines fonctionnalités peuvent être limitées.")
@@ -444,13 +558,13 @@ def main():
     # En-tête
     st.markdown("""
     <div class="main-container">
-        <h1>🔍 Vérificateur d'AVI</h1>
+        <h1>Vérificateur d'AVI</h1>
         <p>Entrez la référence de l'AVI pour vérifier son authenticité</p>
     </div>
     """, unsafe_allow_html=True)
     
     # Section de recherche
-    st.markdown("### 📝 Recherche par référence")
+    st.markdown("### Recherche par référence")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     
@@ -462,7 +576,7 @@ def main():
         )
         
         # Bouton de vérification
-        if st.button("🔍 Vérifier", type="primary", use_container_width=True):
+        if st.button("Vérifier", type="primary", use_container_width=True):
             if not reference or not reference.strip():
                 st.warning("⚠️ Veuillez entrer une référence d'AVI")
             else:
@@ -483,7 +597,7 @@ def main():
                         """.format(reference.strip()), unsafe_allow_html=True)
     
     # Section d'information
-    with st.expander("ℹ️ Comment utiliser le vérificateur", expanded=False):
+    with st.expander("Comment utiliser le vérificateur", expanded=False):
         st.markdown("""
         **Instructions :**
         
@@ -499,18 +613,18 @@ def main():
         """)
     
     # Section des dernières vérifications
-    with st.expander("📊 Statistiques", expanded=False):
+    with st.expander("Statistiques", expanded=False):
         st.markdown("""
         <div style="padding: 0.5rem 0;">
-            <p style="color: #666;">🔒 Cette page est un outil sécurisé de vérification des AVI.</p>
-            <p style="color: #666;">✅ Toutes les vérifications sont enregistrées pour des raisons de sécurité.</p>
+            <p style="color: var(--text-secondary);">Cette page est un outil sécurisé de vérification des AVI.</p>
+            <p style="color: var(--text-secondary);">Toutes les vérifications sont enregistrées pour des raisons de sécurité.</p>
         </div>
         """, unsafe_allow_html=True)
     
     # Footer
     st.markdown("---")
     st.markdown("""
-    <div style="text-align: center; color: #999; font-size: 0.8rem; padding: 1rem 0;">
+    <div style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; padding: 1rem 0;">
         © 2026 Eco Capital - Vérificateur d'AVI v1.0
     </div>
     """, unsafe_allow_html=True)
