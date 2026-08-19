@@ -14,7 +14,7 @@ import time
 # Configuration de la page
 st.set_page_config(
     page_title="Vérificateur AVI - Eco Capital",
-    page_icon="🔍",
+    page_icon="logo.jpg",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -87,11 +87,11 @@ st.markdown("""
     
     .info-label {
         font-weight: 600;
-        color: #555;
+        color: #FFFFFF;
     }
     
     .info-value {
-        color: #333;
+        color: #FFFFFF;
         font-weight: 500;
     }
     
@@ -343,19 +343,19 @@ def display_avi_result(result):
     with col1:
         st.markdown(f"""
         <div class="info-item">
-            <span class="info-label">📌 Référence</span>
+            <span class="info-label">Référence</span>
             <span class="info-value">{result.get('reference', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">👤 Nom complet</span>
+            <span class="info-label">Nom complet</span>
             <span class="info-value">{result.get('nom_complet', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">🏦 Code Banque</span>
+            <span class="info-label">Code Banque</span>
             <span class="info-value">{result.get('code_banque', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">🔢 Numéro de Compte</span>
+            <span class="info-label">Numéro de Compte</span>
             <span class="info-value">{result.get('numero_compte', 'N/A')}</span>
         </div>
         """, unsafe_allow_html=True)
@@ -363,19 +363,19 @@ def display_avi_result(result):
     with col2:
         st.markdown(f"""
         <div class="info-item">
-            <span class="info-label">💱 Devise</span>
+            <span class="info-label">Devise</span>
             <span class="info-value">{result.get('devise', 'XAF')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">🔑 IBAN</span>
+            <span class="info-label">IBAN</span>
             <span class="info-value" style="font-family: monospace;">{format_iban(result.get('iban', 'N/A'))}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">🌐 BIC</span>
+            <span class="info-label">BIC</span>
             <span class="info-value" style="font-family: monospace;">{result.get('bic', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label">💰 Montant</span>
+            <span class="info-label">Montant</span>
             <span class="info-value" style="font-weight: 700; color: #28a745;">{format_montant(result.get('montant'), result.get('devise', 'XAF'))}</span>
         </div>
         """, unsafe_allow_html=True)
@@ -383,38 +383,38 @@ def display_avi_result(result):
     st.markdown("---")
     
     # Informations supplémentaires
-    col1, col2, col3 = st.columns(3)
+    #col1, col2, col3 = st.columns(3)
     
-    with col1:
+    #with col1:
         # Formater la date de création
-        date_creation = result.get('date_creation')
-        date_creation_display = format_date(date_creation)
-        st.metric(
-            "📅 Date de création",
-            date_creation_display
-        )
+    #    date_creation = result.get('date_creation')
+    #    date_creation_display = format_date(date_creation)
+    #    st.metric(
+    #        "📅 Date de création",
+    #        date_creation_display
+    #    )
     
-    with col2:
+    #with col2:
         # Formater la date d'expiration
-        date_expiration = result.get('date_expiration')
-        date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
-        st.metric(
-            "📅 Date d'expiration",
-            date_expiration_display
-        )
+    #    date_expiration = result.get('date_expiration')
+    #    date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
+    #    st.metric(
+    #        "📅 Date d'expiration",
+    #          date_expiration_display
+    #    )
     
-    with col3:
-        statut = result.get('statut', 'N/A')
-        statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
-        st.markdown(f"""
-        <div style="text-align: center;">
-            <span style="font-size: 0.9rem; color: #666;">📋 Statut</span>
-            <br>
-            <span class="{statut_class}">{statut}</span>
-        </div>
-        """, unsafe_allow_html=True)
+    #with col3:
+    #    statut = result.get('statut', 'N/A')
+    #    statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
+    #    st.markdown(f"""
+    #    <div style="text-align: center;">
+    #        <span style="font-size: 0.9rem; color: #666;">📋 Statut</span>
+    #        <br>
+    #        <span class="{statut_class}">{statut}</span>
+    #    </div>
+    #    """, unsafe_allow_html=True)
     
-    st.markdown('</div>', unsafe_allow_html=True)
+    #st.markdown('</div>', unsafe_allow_html=True)
     
     # Commentaires si présents
     if result.get('commentaires'):
