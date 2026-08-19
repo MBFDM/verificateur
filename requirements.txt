@@ -1,1 +1,52 @@
 
+# Core dependencies
+streamlit==1.32.0
+mysql-connector-python==8.3.0
+
+# Data processing
+pandas==2.2.1
+numpy==1.26.4
+
+# PDF generation and manipulation
+fpdf==1.7.2
+PyPDF2==3.0.1
+pdfplumber==0.11.0
+reportlab==4.2.0
+
+# Word document processing
+python-docx==1.1.0
+
+# QR Code generation
+qrcode==7.4.2
+Pillow==10.2.0
+
+# Data visualization
+plotly==5.18.0
+
+# Database utilities
+SQLAlchemy==2.0.28
+cryptography==42.0.5
+
+# Authentication and security
+bcrypt==4.1.2
+
+# Fake data generation
+Faker==24.4.0
+
+# Date handling
+python-dateutil==2.8.2
+
+# PDF OCR and image processing
+pdf2image==1.16.3
+opencv-python-headless==4.9.0.80
+
+# Additional utilities
+python-multipart==0.0.9
+requests==2.31.0
+six==1.16.0
+typing-extensions==4.10.0
+setuptools==69.2.0
+wheel==0.42.0
+
+# Optional but recommended for better performance
+numba==0.59.0
