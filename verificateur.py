@@ -158,7 +158,7 @@ st.markdown("""
     }
     
     [data-theme="light"] .info-value {
-        color: #333;
+        color: #555;
     }
 
     /* ===== THÈME SOMBRE ===== */
