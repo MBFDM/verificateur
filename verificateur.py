@@ -14,7 +14,7 @@ import time
 # Configuration de la page
 st.set_page_config(
     page_title="Vérificateur AVI - Eco Capital",
-    page_icon="🔍",
+    page_icon="logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -232,7 +232,7 @@ st.markdown("""
     
     .info-value {
         font-weight: 500;
-        color: var(--text-primary);
+        color: var(--text-secondary);
         font-size: 0.95rem;
         transition: all 0.3s ease;
     }
@@ -711,19 +711,19 @@ def display_avi_result(result):
     with col1:
         st.markdown(f"""
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">📌</span> Référence</span>
+            <span class="info-label"><span class="label-icon"></span> Référence : </span>
             <span class="info-value">{result.get('reference', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">👤</span> Nom complet</span>
+            <span class="info-label"><span class="label-icon"></span> Nom : </span>
             <span class="info-value">{result.get('nom_complet', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">🏦</span> Code Banque</span>
+            <span class="info-label"><span class="label-icon"></span> Code Banque : </span>
             <span class="info-value">{result.get('code_banque', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">🔢</span> Numéro de Compte</span>
+            <span class="info-label"><span class="label-icon"></span> Numéro de Compte : </span>
             <span class="info-value">{result.get('numero_compte', 'N/A')}</span>
         </div>
         """, unsafe_allow_html=True)
@@ -731,56 +731,24 @@ def display_avi_result(result):
     with col2:
         st.markdown(f"""
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">💱</span> Devise</span>
+            <span class="info-label"><span class="label-icon"></span> Devise : </span>
             <span class="info-value">{result.get('devise', 'XAF')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">🔑</span> IBAN</span>
+            <span class="info-label"><span class="label-icon"></span> IBAN : </span>
             <span class="info-value" style="font-family: monospace;">{format_iban(result.get('iban', 'N/A'))}</span>
         </div>
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">🌐</span> BIC</span>
+            <span class="info-label"><span class="label-icon"></span> BIC : </span>
             <span class="info-value" style="font-family: monospace;">{result.get('bic', 'N/A')}</span>
         </div>
         <div class="info-item">
-            <span class="info-label"><span class="label-icon">💰</span> Montant</span>
+            <span class="info-label"><span class="label-icon"></span> Montant : </span>
             <span class="info-value" style="font-weight: 700; color: #28a745;">{format_montant(result.get('montant'), result.get('devise', 'XAF'))}</span>
         </div>
         """, unsafe_allow_html=True)
     
     st.markdown("---")
-    
-    # Informations supplémentaires
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        date_creation = result.get('date_creation')
-        date_creation_display = format_date(date_creation)
-        st.metric(
-            "📅 Date de création",
-            date_creation_display
-        )
-    
-    with col2:
-        date_expiration = result.get('date_expiration')
-        date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
-        st.metric(
-            "📅 Date d'expiration",
-            date_expiration_display
-        )
-    
-    with col3:
-        statut = result.get('statut', 'N/A')
-        statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
-        st.markdown(f"""
-        <div style="text-align: center;">
-            <span style="font-size: 0.9rem; color: var(--text-secondary);">📋 Statut</span>
-            <br>
-            <span class="{statut_class}">{statut}</span>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
     
     # Commentaires si présents
     if result.get('commentaires'):
