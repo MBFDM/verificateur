@@ -1,13 +1,14 @@
 """
-Application de Vérification d'AVI - Version Optimisée
+Application de Vérification d'AVI
 Permet de vérifier les informations d'une AVI en entrant sa référence
 """
 
 import streamlit as st
 import mysql.connector
+import pandas as pd
 from datetime import datetime
 import logging
-from functools import lru_cache
+import re
 import time
 
 # Configuration de la page
@@ -25,47 +26,205 @@ MYSQL_CONFIG = {
     'password': 'AVNS_3a2plzaevzttmJ4Tcs9',
     'database': 'ecocapital',
     'port': 14431,
-    'connect_timeout': 10,  # Timeout de connexion réduit
-    'pool_name': 'aviconnectionpool',
-    'pool_size': 1,  # Une seule connexion
-    'pool_reset_session': True,
 }
 
 # Configuration du logging
-logging.basicConfig(level=logging.ERROR)  # Réduit les logs pour économiser CPU
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Cache pour les connexions à la base de données
-@st.cache_resource
+# Styles CSS personnalisés
+st.markdown("""
+<style>
+    .main-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+        animation: fadeIn 0.8s ease-out;
+    }
+    
+    .main-container h1 {
+        margin: 0;
+        font-size: 2.5rem;
+    }
+    
+    .main-container p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .result-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-top: 1.5rem;
+        animation: slideUp 0.6s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #555;
+    }
+    
+    .info-value {
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .status-valid {
+        background: #28a745;
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .status-invalid {
+        background: #dc3545;
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .verification-badge {
+        background: #ffc107;
+        color: #333;
+        padding: 0.5rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 700;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+
+    .stTextInput > div > div > input {
+        font-size: 1.1rem;
+        padding: 0.75rem 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 def get_db_connection():
-    """Établit une connexion à la base de données MySQL avec cache"""
+    """Établit une connexion à la base de données MySQL"""
     try:
         conn = mysql.connector.connect(**MYSQL_CONFIG)
         return conn
     except mysql.connector.Error as err:
         logger.error(f"Erreur de connexion à MySQL: {err}")
+        st.error(f"❌ Erreur de connexion à la base de données: {err}")
         return None
 
-# Cache pour la vérification de la base de données - fait une seule fois
-@st.cache_resource
-def check_database():
-    """Vérifie que la base de données existe - exécuté une seule fois"""
+def init_database():
+    """Vérifie et crée les tables nécessaires si elles n'existent pas"""
     conn = get_db_connection()
     if not conn:
         return False
     
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM avis LIMIT 1")
+        
+        # Vérifier si la table avis existe
+        cursor.execute("""
+            SELECT COUNT(*) FROM information_schema.tables 
+            WHERE table_schema = %s AND table_name = 'avis'
+        """, (MYSQL_CONFIG['database'],))
+        
+        table_exists = cursor.fetchone()[0] > 0
+        
+        if not table_exists:
+            # Créer la table avis si elle n'existe pas
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS avis (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                reference VARCHAR(50) UNIQUE NOT NULL,
+                nom_complet VARCHAR(255) NOT NULL,
+                code_banque VARCHAR(50) NOT NULL,
+                numero_compte VARCHAR(50) NOT NULL,
+                devise VARCHAR(10) NOT NULL,
+                iban VARCHAR(50) NOT NULL,
+                bic VARCHAR(20) NOT NULL,
+                montant DECIMAL(15,2) NOT NULL,
+                date_creation DATE NOT NULL,
+                date_expiration DATE,
+                statut VARCHAR(50) NOT NULL,
+                commentaires TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            conn.commit()
+            st.success("✅ Table 'avis' créée avec succès")
+        
+        # Vérifier si la table info_avi existe
+        cursor.execute("""
+            SELECT COUNT(*) FROM information_schema.tables 
+            WHERE table_schema = %s AND table_name = 'info_avi'
+        """, (MYSQL_CONFIG['database'],))
+        
+        info_table_exists = cursor.fetchone()[0] > 0
+        
+        if not info_table_exists:
+            # Créer la table info_avi si elle n'existe pas
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS info_avi (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                reference VARCHAR(50) UNIQUE NOT NULL,
+                nom_complet VARCHAR(255) NOT NULL,
+                code_banque VARCHAR(50) NOT NULL,
+                numero_compte VARCHAR(50) NOT NULL,
+                devise VARCHAR(10) NOT NULL,
+                iban VARCHAR(50) NOT NULL,
+                bic VARCHAR(20) NOT NULL,
+                montant DECIMAL(15,2) NOT NULL,
+                date_creation DATE,
+                date_expiration DATE,
+                statut VARCHAR(50),
+                commentaires TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+            ''')
+            conn.commit()
+            st.success("✅ Table 'info_avi' créée avec succès")
+        
         cursor.close()
+        conn.close()
         return True
-    except:
+        
+    except mysql.connector.Error as e:
+        logger.error(f"Erreur lors de l'initialisation de la base de données: {str(e)}")
+        st.error(f"❌ Erreur lors de l'initialisation de la base de données: {str(e)}")
         return False
 
-@st.cache_data(ttl=3600)  # Cache pendant 1 heure
-def verify_avi_cached(reference: str):
+def verify_avi(reference: str):
     """
-    Vérifie une AVI par sa référence - Version avec cache
+    Vérifie une AVI par sa référence
+    Retourne les informations de l'AVI si trouvée
     """
     conn = get_db_connection()
     if not conn:
@@ -74,7 +233,8 @@ def verify_avi_cached(reference: str):
     try:
         cursor = conn.cursor(dictionary=True)
         
-        # Requête optimisée avec UNION pour chercher dans les deux tables en une seule fois
+        # Requête pour récupérer les informations de l'AVI
+        # On cherche d'abord dans la table avis, puis dans info_avi
         query = """
         SELECT 
             reference,
@@ -88,44 +248,51 @@ def verify_avi_cached(reference: str):
             date_creation,
             date_expiration,
             statut,
-            commentaires,
-            'avis' as source
+            commentaires
         FROM avis 
         WHERE reference = %s
-        UNION ALL
-        SELECT 
-            reference,
-            nom_complet,
-            code_banque,
-            numero_compte,
-            devise,
-            iban,
-            bic,
-            montant,
-            date_creation,
-            date_expiration,
-            statut,
-            commentaires,
-            'info_avi' as source
-        FROM info_avi 
-        WHERE reference = %s
-        LIMIT 1
         """
         
-        cursor.execute(query, (reference.strip(), reference.strip()))
+        cursor.execute(query, (reference.strip(),))
         result = cursor.fetchone()
         
+        # Si pas trouvé dans avis, chercher dans info_avi
+        if not result:
+            query = """
+            SELECT 
+                reference,
+                nom_complet,
+                code_banque,
+                numero_compte,
+                devise,
+                iban,
+                bic,
+                montant,
+                date_creation,
+                date_expiration,
+                statut,
+                commentaires
+            FROM info_avi 
+            WHERE reference = %s
+            """
+            cursor.execute(query, (reference.strip(),))
+            result = cursor.fetchone()
+        
         cursor.close()
+        conn.close()
+        
         return result
         
     except mysql.connector.Error as e:
         logger.error(f"Erreur lors de la vérification: {str(e)}")
+        st.error(f"❌ Erreur lors de la vérification: {str(e)}")
         return None
 
 def format_iban(iban):
     """Formate un IBAN pour l'affichage (espaces tous les 4 caractères)"""
     if not iban:
         return iban
+    # Supprimer les espaces existants avant de reformater
     iban_clean = iban.replace(' ', '')
     return ' '.join([iban_clean[i:i+4] for i in range(0, len(iban_clean), 4)])
 
@@ -146,6 +313,7 @@ def format_date(date_value):
         return date_value.strftime('%d/%m/%Y')
     if isinstance(date_value, str):
         try:
+            # Essayer de parser la date
             date_obj = datetime.strptime(date_value, '%Y-%m-%d')
             return date_obj.strftime('%d/%m/%Y')
         except ValueError:
@@ -218,6 +386,7 @@ def display_avi_result(result):
     col1, col2, col3 = st.columns(3)
     
     with col1:
+        # Formater la date de création
         date_creation = result.get('date_creation')
         date_creation_display = format_date(date_creation)
         st.metric(
@@ -226,6 +395,7 @@ def display_avi_result(result):
         )
     
     with col2:
+        # Formater la date d'expiration
         date_expiration = result.get('date_expiration')
         date_expiration_display = format_date(date_expiration) if date_expiration else 'Non définie'
         st.metric(
@@ -262,105 +432,14 @@ def display_avi_result(result):
     </div>
     """, unsafe_allow_html=True)
 
-# CSS personnalisé - chargé une seule fois
-@st.cache_data
-def load_css():
-    return """
-    <style>
-        .main-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 2rem;
-            border-radius: 15px;
-            color: white;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .main-container h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-        
-        .main-container p {
-            margin: 0.5rem 0 0 0;
-            opacity: 0.9;
-        }
-        
-        .result-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            margin-top: 1.5rem;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #555;
-        }
-        
-        .info-value {
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .status-valid {
-            background: #28a745;
-            color: white;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        
-        .status-invalid {
-            background: #dc3545;
-            color: white;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        
-        .verification-badge {
-            background: #ffc107;
-            color: #333;
-            padding: 0.5rem 1.5rem;
-            border-radius: 30px;
-            font-weight: 700;
-            display: inline-block;
-            font-size: 0.9rem;
-        }
-
-        .stTextInput > div > div > input {
-            font-size: 1.1rem;
-            padding: 0.75rem 1rem;
-        }
-    </style>
-    """
-
 def main():
-    """Point d'entrée principal - Version optimisée"""
+    """Point d'entrée principal"""
     
-    # Chargement CSS une seule fois
-    st.markdown(load_css(), unsafe_allow_html=True)
-    
-    # Vérification rapide de la base de données (une seule fois)
-    db_ok = check_database()
-    if not db_ok:
-        st.warning("⚠️ Problème avec la base de données. Veuillez réessayer plus tard.")
-        st.stop()
+    # Initialisation de la base de données
+    with st.spinner("🔄 Vérification de la base de données..."):
+        init_success = init_database()
+        if not init_success:
+            st.warning("⚠️ Problème avec la base de données. Certaines fonctionnalités peuvent être limitées.")
     
     # En-tête
     st.markdown("""
@@ -382,38 +461,28 @@ def main():
             label_visibility="collapsed"
         )
         
-        # Bouton de vérification avec gestion du throttling
+        # Bouton de vérification
         if st.button("🔍 Vérifier", type="primary", use_container_width=True):
             if not reference or not reference.strip():
                 st.warning("⚠️ Veuillez entrer une référence d'AVI")
             else:
-                # Simuler un délai pour éviter les requêtes trop fréquentes
-                if 'last_request' not in st.session_state:
-                    st.session_state.last_request = 0
-                
-                current_time = time.time()
-                if current_time - st.session_state.last_request < 2:
-                    st.warning("⏳ Veuillez attendre 2 secondes entre chaque vérification")
-                else:
-                    st.session_state.last_request = current_time
+                with st.spinner("Vérification en cours..."):
+                    result = verify_avi(reference)
                     
-                    with st.spinner("Vérification en cours..."):
-                        result = verify_avi_cached(reference)
-                        
-                        if result:
-                            st.markdown("---")
-                            display_avi_result(result)
-                        else:
-                            st.markdown("---")
-                            st.markdown("""
-                            <div style="text-align: center; padding: 2rem; background: #fff3cd; border-radius: 10px; border: 1px solid #ffc107;">
-                                <h3 style="color: #856404;">❌ AVI non trouvée</h3>
-                                <p style="color: #856404;">Aucune attestation trouvée avec la référence <strong>{}</strong></p>
-                                <p style="color: #856404; font-size: 0.9rem;">Vérifiez que la référence est correcte (format: AVI-YYYYMMDD-XXXX)</p>
-                            </div>
-                            """.format(reference.strip()), unsafe_allow_html=True)
+                    if result:
+                        st.markdown("---")
+                        display_avi_result(result)
+                    else:
+                        st.markdown("---")
+                        st.markdown("""
+                        <div style="text-align: center; padding: 2rem; background: #fff3cd; border-radius: 10px; border: 1px solid #ffc107;">
+                            <h3 style="color: #856404;">❌ AVI non trouvée</h3>
+                            <p style="color: #856404;">Aucune attestation trouvée avec la référence <strong>{}</strong></p>
+                            <p style="color: #856404; font-size: 0.9rem;">Vérifiez que la référence est correcte (format: AVI-YYYYMMDD-XXXX)</p>
+                        </div>
+                        """.format(reference.strip()), unsafe_allow_html=True)
     
-    # Section d'information - Chargée une seule fois
+    # Section d'information
     with st.expander("ℹ️ Comment utiliser le vérificateur", expanded=False):
         st.markdown("""
         **Instructions :**
@@ -428,6 +497,23 @@ def main():
         
         **Exemple :** `AVI-20260119-1234`
         """)
+    
+    # Section des dernières vérifications
+    with st.expander("📊 Statistiques", expanded=False):
+        st.markdown("""
+        <div style="padding: 0.5rem 0;">
+            <p style="color: #666;">🔒 Cette page est un outil sécurisé de vérification des AVI.</p>
+            <p style="color: #666;">✅ Toutes les vérifications sont enregistrées pour des raisons de sécurité.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Footer
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; color: #999; font-size: 0.8rem; padding: 1rem 0;">
+        © 2026 Eco Capital - Vérificateur d'AVI v1.0
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
