@@ -32,6 +32,11 @@ MYSQL_CONFIG = {
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ============================================================
+# URL DE RETOUR - MODIFIEZ ICI L'URL DE DESTINATION
+# ============================================================
+RETURN_URL = "https://www.ecocapitale.com"  # Remplacez par l'URL de votre site
+
 # Styles CSS personnalisés - Design Premium avec animations
 st.markdown("""
 <style>
@@ -84,6 +89,56 @@ st.markdown("""
     @keyframes borderGlow {
         0%, 100% { border-color: var(--primary-color); }
         50% { border-color: var(--secondary-color); }
+    }
+
+    @keyframes arrowBounce {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(-5px); }
+    }
+
+    /* ===== BOUTON RETOUR ===== */
+    .back-button-container {
+        margin-bottom: 1.5rem;
+        animation: fadeInDown 0.6s ease-out;
+    }
+    
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0.6rem 1.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        background: var(--background-secondary);
+        border: 2px solid var(--border-color);
+        color: var(--text-primary);
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .back-button:hover {
+        transform: translateX(-5px) scale(1.02);
+        border-color: var(--gradient-start);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+        background: rgba(102, 126, 234, 0.05);
+    }
+    
+    .back-button .arrow-icon {
+        display: inline-block;
+        font-size: 1.2rem;
+        animation: arrowBounce 2s ease-in-out infinite;
+        transition: transform 0.3s ease;
+    }
+    
+    .back-button:hover .arrow-icon {
+        animation: arrowBounce 0.5s ease-in-out infinite;
+    }
+    
+    .back-button .button-text {
+        font-size: 0.95rem;
     }
 
     /* ===== STYLES COMMUNS ===== */
@@ -362,6 +417,17 @@ st.markdown("""
         color: #333;
     }
 
+    [data-theme="light"] .back-button {
+        background: white;
+        border-color: #ddd;
+        color: #333;
+    }
+    
+    [data-theme="light"] .back-button:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+    }
+
     /* ===== THÈME SOMBRE ===== */
     @media (prefers-color-scheme: dark) {
         [data-theme="dark"] {
@@ -412,6 +478,17 @@ st.markdown("""
         
         [data-theme="dark"] .status-invalid {
             background: linear-gradient(135deg, #b33c4a, #c0392b);
+        }
+
+        [data-theme="dark"] .back-button {
+            background: #1e2130;
+            border-color: #3d3d55;
+            color: #f0f0f0;
+        }
+        
+        [data-theme="dark"] .back-button:hover {
+            border-color: #4a6fa5;
+            background: rgba(74, 111, 165, 0.1);
         }
     }
 
@@ -474,6 +551,11 @@ st.markdown("""
             flex-direction: column;
             gap: 5px;
             padding: 0.6rem 0;
+        }
+        
+        .back-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
         }
     }
 </style>
@@ -682,6 +764,17 @@ def format_date(date_value):
             return date_value
     return str(date_value)
 
+def display_back_button():
+    """Affiche le bouton retour en haut de la page"""
+    st.markdown(f"""
+    <div class="back-button-container">
+        <a href="{RETURN_URL}" target="_blank" class="back-button">
+            <span class="arrow-icon">←</span>
+            <span class="button-text">Retour</span>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
 def display_avi_result(result):
     """Affiche les résultats de la vérification avec animations"""
     if not result:
@@ -771,6 +864,9 @@ def display_avi_result(result):
 
 def main():
     """Point d'entrée principal"""
+    
+    # Afficher le bouton retour en haut
+    display_back_button()
     
     # Initialisation de la base de données avec animation
     with st.spinner("🔄 Vérification de la base de données..."):
